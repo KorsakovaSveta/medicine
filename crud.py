@@ -40,7 +40,10 @@ class DbManager:
         with get_session() as session:
             result = session.run(query)
             diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
-            return diseases
+            if diseases == []:
+                return [{"disease": "No diseases found"}]
+            else:
+                return diseases
 
 class UserManager:
     def create_user(self, username: str, password: str):
