@@ -13,8 +13,13 @@ def index():
         query = f"""
         MATCH (d:node)-[:симптом]->(s:Symptom)
         WHERE s.name IN [{selected_symptoms_query}]
-        RETURN d.name AS disease, COLLECT(s.name) AS symptoms
+        WITH d, COLLECT(s.name) AS allSymptoms, COUNT(DISTINCT s) AS numSymptoms
+        WHERE numSymptoms = SIZE([{selected_symptoms_query}])
+        RETURN d.name AS disease, allSymptoms AS symptoms
         """
+        # MATCH (d:node)-[:симптом]->(s:Symptom)
+        # WHERE s.name IN [{selected_symptoms_query}]
+        # RETURN d.name AS disease, COLLECT(s.name) AS symptoms
         result = graph.run(query)
         diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
         return render_template("index.html", symptoms=get_all_symptoms(), selected_symptoms=selected_symptoms, diseases=diseases)
