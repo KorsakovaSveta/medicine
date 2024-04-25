@@ -31,25 +31,25 @@ async def all_disease():
     return disease.model_dump_json()
 
 
-@app.get("/med_calc/get_all_disease")
+@app.get("/med_calc/bmi")
 async def BmiCalculator(calc: BmiCalculator):
     example = 52
     return {"result": {example}}
 
 
-@app.get("/med_calc/get_all_disease")
+@app.get("/med_calc/child_height")
 async def ChildHeightCalculator(calc: ChildHeightCalculator):
     example = 52
     return {"potential": {example}, "z_score": {example}, "percentile": {example}}
 
 
-@app.get("/med_calc/get_all_disease")
+@app.get("/med_calc/meldna")
 async def MeldnaCalculator(calc: MeldnaCalculator):
     example = 52
     return {"meld_score": {example}, "meldna_score": {example}}
 
 
-@app.get("/med_calc/get_all_disease")
+@app.get("/med_calc/water")
 async def WaterCalculator(calc: WaterCalculator):
     example = 52
     return {"result": {example}}
