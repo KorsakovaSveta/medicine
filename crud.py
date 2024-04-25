@@ -18,13 +18,20 @@ class DbManager:
 
 
     def read_all_symptoms(self):
+        final_result = {}
         with (get_session() as session):
-            result = session.run("MATCH (s:Symptom) RETURN s.name AS symptom")
-            return [record["symptom"] for record in result]
+            result = session.run(
+                "MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
+            )
+            for record in result:
+                final_result.update({record["symptomName"]: record["symptomDescription"]})
+            return final_result
+
     def read_all_disease(self):
         with (get_session() as session):
             result = session.run("MATCH (d:node) RETURN d.name AS disease")
             return [record["disease"] for record in result]
+
     def read_one(self):
         pass
 
