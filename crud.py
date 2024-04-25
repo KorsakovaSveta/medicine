@@ -29,7 +29,7 @@ class DbManager:
         pass
 
     def read_disease_by_symptom(self, selected_symptoms):
-        selected_symptoms_query = ", ".join(f'"{symptom}"' for symptom in selected_symptoms)
+        selected_symptoms_query = ", ".join(f'"{symptom}"' for symptom in selected_symptoms.symptoms)
         query = f"""
                     MATCH (d:node)-[:симптом]->(s:Symptom)
                     WHERE s.name IN [{selected_symptoms_query}]

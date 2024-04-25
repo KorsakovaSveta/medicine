@@ -12,7 +12,9 @@ async def root():
 
 @app.post("/get_disease")
 async def selected_disease(selected_symptoms: SymptomData):
-    disease = DiseaseData(disease=db_manager.read_disease_by_symptom(selected_symptoms))
+    result = db_manager.read_disease_by_symptom(selected_symptoms)
+    diseases = [item['disease'] for item in result]
+    disease = DiseaseData(disease=diseases)
     return disease.model_dump_json()
 
 @app.get("/get_all_symptoms")
