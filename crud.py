@@ -23,7 +23,7 @@ class DbManager:
             return [record["symptom"] for record in result]
     def read_all_disease(self):
         with (get_session() as session):
-            result = session.run("MATCH (d:Disease) RETURN d.name AS disease")
+            result = session.run("MATCH (d:node) RETURN d.name AS disease")
             return [record["disease"] for record in result]
     def read_one(self):
         pass
@@ -31,9 +31,11 @@ class DbManager:
     def read_disease_by_symptom(self, selected_symptoms):
         selected_symptoms_query = ", ".join(f'"{symptom}"' for symptom in selected_symptoms.symptoms)
         query = f"""
-                    MATCH (d:node)-[:симптом]->(s:Symptom)
+                     MATCH (d:node)-[:симптом]->(s:Symptom)
                     WHERE s.name IN [{selected_symptoms_query}]
-                    RETURN d.name AS disease, COLLECT(s.name) AS symptoms
+                    WITH d, COLLECT(s.name) AS allSymptoms, COUNT(DISTINCT s) AS numSymptoms
+                    WHERE numSymptoms = SIZE([{selected_symptoms_query}])
+                    RETURN d.name AS disease, allSymptoms AS symptoms
                     """
         with get_session() as session:
             result = session.run(query)
