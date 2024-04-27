@@ -22,9 +22,13 @@ class DbManager:
         with (get_session() as session):
             result = session.run(
                 "MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
+                # "MATCH (n:Symptom) RETURN n.name AS symptomName,
+                #   n.description AS symptomDescription, n.text AS symptomText"
             )
             for record in result:
                 final_result.update({record["symptomName"]: record["symptomDescription"]})
+                # final_result.update({record["symptomName"]: (record["symptomDescription"],
+                #                                             record["symptomText"])})
             return final_result
 
     def read_all_disease(self):
@@ -44,9 +48,12 @@ class DbManager:
                     WHERE numSymptoms = SIZE([{selected_symptoms_query}])
                     RETURN d.name AS disease, allSymptoms AS symptoms
                     """
+
         with get_session() as session:
             result = session.run(query)
             diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
+            # diseases = [{"disease": record["disease"],
+            # "symptoms": record["symptoms"]} for record in result]
             if diseases == []:
                 return [{"disease": "No diseases found"}]
             else:

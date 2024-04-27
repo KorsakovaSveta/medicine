@@ -11,6 +11,10 @@ class User(BaseModel):
     password: str
 
 
+class SymptomInput(BaseModel):
+    symptoms: List[str]
+
+
 class SymptomData(BaseModel):
     symptoms: dict
 
