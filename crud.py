@@ -59,6 +59,12 @@ class DbManager:
             else:
                 return diseases
 
+    def read_by_name(self, name):
+        with (get_session() as session):
+            parameters = {name: 'name'}
+            return session.run(f"MATCH (n) RETURN n", parameters).single()
+
+
 class UserManager:
     def create_user(self, username: str, password: str):
         with get_session() as session:

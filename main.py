@@ -32,6 +32,11 @@ async def all_disease():
     return disease.model_dump_json()
 
 
+@app.get("/search")
+async def search(name: str):
+    return db_manager.read_by_name(name)
+
+
 @app.post("/med_calc/bmi")
 async def BmiCalculator(calc: BmiCalculator):
     example = 52
