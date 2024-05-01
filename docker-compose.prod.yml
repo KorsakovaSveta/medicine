@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+
+  backend:
+    container_name: auth-prod-backend
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: Dockerfile.prod
+    command: python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - 8000:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+    env_file:
+      - .env_examples/backend/.prod.env
+    healthcheck:
+      test: wget --no-verbose -O /dev/null --tries=1 http://localhost:8000/healthcheck || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  postgres:
+    container_name: auth-prod-postgres
+    image: postgres:15-alpine
+    restart: unless-stopped
+    expose:
+      - 5432
+    env_file:
+      - .env_examples/postgres/.prod.env
+    volumes:
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - prod_database_volume:/var/lib/postgresql
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-nouserfound}
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    container_name: auth-prod-redis
+    image: redis:7.2-bookworm
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.prod.conf
+    expose:
+      - 6379
+    env_file:
+      - .env_examples/redis/.prod.env
+    volumes:
+      - ./.env_examples/redis/.redis.prod.conf:/usr/local/etc/redis/redis.prod.conf
+    healthcheck:
+      test: redis-cli -a ${REDIS_PASSWORD:-nopasswordfound} --no-auth-warning --raw incr ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rabbitmq:
+    container_name: auth-prod-rabbitmq
+    image: rabbitmq:3.12.12-management-alpine
+    restart: unless-stopped
+    ports:
+      - 15672:15672
+    expose:
+      - 5672
+    env_file:
+      - .env_examples/rabbitmq/.prod.env
+    volumes:
+      - ./.env_examples/rabbitmq/.definitions.json:/etc/rabbitmq/definitions.json
+      - ./.env_examples/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # !!! Remove localstack in production, consider using real AWS services instead
+
+  localstack:
+    container_name: auth-prod-localstack
+    image: localstack/localstack
+    restart: unless-stopped
+    command: ["sh", "-c", "chmod 755 /etc/localstack/init/ready.d/init_aws.sh && /start.sh"]
+    expose:
+      - 8080
+    ports:
+      - 4566:4566
+    environment:
+      - DEBUG=0
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID=changeme
+      - AWS_SECRET_ACCESS_KEY=changeme
+    volumes:
+      - "./.env_examples/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+
+volumes:
+  prod_database_volume:
