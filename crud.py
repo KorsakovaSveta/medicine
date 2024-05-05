@@ -1,10 +1,13 @@
 from neo4j import GraphDatabase
 
+from schemas import User
+
 uri = 'bolt://localhost:7687'
 user = "neo4j"
 password = "keW3z48dcPHG8Au"
 
 driver = GraphDatabase.driver(uri, auth=(user, password))
+
 
 def get_session():
     session = driver.session()
@@ -15,7 +18,6 @@ class DbManager:
 
     def create(self):
         pass
-
 
     def read_all_symptoms(self):
         final_result = {}
@@ -59,9 +61,24 @@ class DbManager:
             else:
                 return diseases
 
+    def read_by_name(self, name):
+        with (get_session() as session):
+            parameters = {name: 'name'}
+            return session.run(f"MATCH (n) RETURN n", parameters).single()
+
+
 class UserManager:
     def create_user(self, username: str, password: str):
         with get_session() as session:
-            session.run("CREATE (u:User {username: $username, password_hash: $hashed_password})",
-                username=username, password=password)
+            params = {'username': username, 'password': password}
+            session.run("CREATE (u:User)",
+                        parameters=params)
 
+    def authenticate_user(self, username: str, password: str):
+        with get_session() as session:
+            params = {'username': username, 'password': password}
+            result = session.run("SELECT (u:User)",
+                        parameters=params)
+        record = result.single()
+        if record["username"] == username and record["password"] == password:
+            return True

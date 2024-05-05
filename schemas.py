@@ -26,13 +26,17 @@ class DiseaseData(BaseModel):
 class BmiCalculator(BaseModel):
     height: int
     weight: float
+    height_unit: str
+    weight_unit: str
 
 
 class ChildHeightCalculator(BaseModel):
     sex: str
     mother_height: int
     father_height: int
-
+    mothers_height_unit: str
+    fathers_height_unit: str
+    height_potential_result_unit: str
 
 class MeldnaCalculator(BaseModel):
     creatine: float
