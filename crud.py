@@ -1,6 +1,5 @@
 from neo4j import GraphDatabase
 
-from schemas import User
 
 uri = 'bolt://localhost:7687'
 user = "neo4j"
@@ -23,14 +22,14 @@ class DbManager:
         final_result = {}
         with (get_session() as session):
             result = session.run(
-                "MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
-                # "MATCH (n:Symptom) RETURN n.name AS symptomName,
-                #   n.description AS symptomDescription, n.text AS symptomText"
+                #"MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
+                "MATCH (n:Symptom) RETURN n.name AS symptomName,"
+                " n.description AS symptomDescription, n.text AS symptomText"
             )
             for record in result:
-                final_result.update({record["symptomName"]: record["symptomDescription"]})
-                # final_result.update({record["symptomName"]: (record["symptomDescription"],
-                #                                             record["symptomText"])})
+                #final_result.update({record["symptomName"]: record["symptomDescription"]})
+                final_result.update({record["symptomName"]: (record["symptomDescription"],
+                                                             record["symptomText"])})
             return final_result
 
     def read_all_disease(self):
