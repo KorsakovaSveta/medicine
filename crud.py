@@ -23,19 +23,36 @@ class DbManager:
         final_result = {}
         with (get_session() as session):
             result = session.run(
-                "MATCH (n:Symptom) RETURN DISTINCT n.name AS symptomName, n.description AS symptomDescription"
-                # "MATCH (n:Symptom) RETURN n.name AS symptomName,
-                #   n.description AS symptomDescription, n.text AS symptomText"
+                #"MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
+                "MATCH (n:Symptom) RETURN n.name AS symptomName,"
+                " n.description AS symptomDescription, n.text AS symptomText"
             )
             for record in result:
-                final_result.update({record["symptomName"]: record["symptomDescription"]})
-                # final_result.update({record["symptomName"]: (record["symptomDescription"],
-                #                                             record["symptomText"])})
+                #final_result.update({record["symptomName"]: record["symptomDescription"]})
+                final_result.update({record["symptomName"]: (record["symptomDescription"],
+                                                             record["symptomText"])})
             return final_result
+
+    def read_drug_by_substance(self, substance):
+        query = f"""
+                            MATCH (d:node)-[:активное_вещество]->(s:Symptom)
+                            WHERE s.name IN [{selected_symptoms_query}]
+                            WITH d, COLLECT(s.name) AS allSymptoms, COUNT(DISTINCT s) AS numSymptoms
+                            WHERE numSymptoms = SIZE([{selected_symptoms_query}])
+                            RETURN d.name AS disease, allSymptoms AS symptoms
+                            """
+
+        with get_session() as session:
+            result = session.run(query)
+            diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
+            if diseases == []:
+                return [{"disease": "No diseases found"}]
+            else:
+                return diseases
 
     def read_all_disease(self):
         with (get_session() as session):
-            result = session.run("MATCH (d:node) RETURN DISTINCT d.name AS disease")
+            result = session.run("MATCH (d:node) RETURN d.name AS disease")
             return [record["disease"] for record in result]
 
     def read_one(self):
