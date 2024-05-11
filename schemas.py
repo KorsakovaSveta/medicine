@@ -42,12 +42,20 @@ class MeldnaCalculator(BaseModel):
     creatine: float
     bilirubin: float
     inr: float
-    serum: float
-    hemodialysis: bool
+    serum_na: float
+    hemodialysis_twice_in_week_prior: float
+    creatinine_unit: str
+    bilirubin_unit: str
+    serum_na_unit: str
 
 
 class WaterCalculator(BaseModel):
     age_sex_factor: float
-    desired: int
+    desired_na: int
     normal_weight: float
-    serum: int
+    serum_na: int
+    desired_na_unit: str
+    normal_weight_unit: str
+    serum_na_unit: str
+    wdef_result_unit: str
+

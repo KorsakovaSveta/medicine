@@ -32,6 +32,23 @@ class DbManager:
                                                              record["symptomText"])})
             return final_result
 
+    def read_drug_by_substance(self, substance):
+        query = f"""
+                            MATCH (d:node)-[:активное_вещество]->(s:Symptom)
+                            WHERE s.name IN [{selected_symptoms_query}]
+                            WITH d, COLLECT(s.name) AS allSymptoms, COUNT(DISTINCT s) AS numSymptoms
+                            WHERE numSymptoms = SIZE([{selected_symptoms_query}])
+                            RETURN d.name AS disease, allSymptoms AS symptoms
+                            """
+
+        with get_session() as session:
+            result = session.run(query)
+            diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
+            if diseases == []:
+                return [{"disease": "No diseases found"}]
+            else:
+                return diseases
+
     def read_all_disease(self):
         with (get_session() as session):
             result = session.run("MATCH (d:node) RETURN d.name AS disease")
@@ -53,8 +70,6 @@ class DbManager:
         with get_session() as session:
             result = session.run(query)
             diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
-            # diseases = [{"disease": record["disease"],
-            # "symptoms": record["symptoms"]} for record in result]
             if diseases == []:
                 return [{"disease": "No diseases found"}]
             else:
