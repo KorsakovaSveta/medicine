@@ -1,5 +1,6 @@
 from neo4j import GraphDatabase
 
+from schemas import User
 
 uri = 'bolt://localhost:7687'
 user = "neo4j"
@@ -70,6 +71,8 @@ class DbManager:
         with get_session() as session:
             result = session.run(query)
             diseases = [{"disease": record["disease"], "symptoms": record["symptoms"]} for record in result]
+            # diseases = [{"disease": record["disease"],
+            # "symptoms": record["symptoms"]} for record in result]
             if diseases == []:
                 return [{"disease": "No diseases found"}]
             else:
@@ -77,8 +80,7 @@ class DbManager:
 
     def read_by_name(self, name):
         with (get_session() as session):
-            parameters = {name: 'name'}
-            return session.run(f"MATCH (n) RETURN n", parameters).single()
+            return session.run(f"MATCH (n) WHERE (n:node OR n:class OR n:Symptom) AND TRIM(toLower(n.name))=TRIM(toLower($name)) RETURN DISTINCT TRIM(n.description)", name=name).single()
 
 
 class UserManager:

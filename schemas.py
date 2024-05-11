@@ -32,8 +32,8 @@ class BmiCalculator(BaseModel):
 
 class ChildHeightCalculator(BaseModel):
     sex: str
-    mother_height: int
-    father_height: int
+    mothers_height: int
+    fathers_height: int
     mothers_height_unit: str
     fathers_height_unit: str
     height_potential_result_unit: str
