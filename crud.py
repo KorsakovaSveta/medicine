@@ -23,7 +23,7 @@ class DbManager:
         final_result = {}
         with (get_session() as session):
             result = session.run(
-                "MATCH (n:Symptom) RETURN n.name AS symptomName, n.description AS symptomDescription"
+                "MATCH (n:Symptom) RETURN DISTINCT n.name AS symptomName, n.description AS symptomDescription"
                 # "MATCH (n:Symptom) RETURN n.name AS symptomName,
                 #   n.description AS symptomDescription, n.text AS symptomText"
             )
@@ -35,7 +35,7 @@ class DbManager:
 
     def read_all_disease(self):
         with (get_session() as session):
-            result = session.run("MATCH (d:node) RETURN d.name AS disease")
+            result = session.run("MATCH (d:node) RETURN DISTINCT d.name AS disease")
             return [record["disease"] for record in result]
 
     def read_one(self):
@@ -63,8 +63,7 @@ class DbManager:
 
     def read_by_name(self, name):
         with (get_session() as session):
-            parameters = {name: 'name'}
-            return session.run(f"MATCH (n) RETURN n", parameters).single()
+            return session.run(f"MATCH (n) WHERE (n:node OR n:class OR n:Symptom) AND TRIM(toLower(n.name))=TRIM(toLower($name)) RETURN DISTINCT TRIM(n.description)", name=name).single()
 
 
 class UserManager:
