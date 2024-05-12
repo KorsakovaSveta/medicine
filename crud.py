@@ -40,23 +40,23 @@ class DbManager:
             return final_result
 
     def read_drug_by_substance(self, selected_medicine):
-        query = f"""
-                            MATCH (m:medicine_drug {{id: "{selected_medicine}"}})-[:substance]->(s:medicine_substance)<-[:substance]-(analog:medicine_drug)
-        RETURN analog.name as analog, s.name as substance
-                            """
 
         with get_session() as session:
-            result = session.run(query)
-            analogs = [record["analog"] for record in result]
-            substances = [record["substance"] for record in result]
-            substance = ""
-            if substances:
-                substance = substances[0]
-            if not analogs:
-                return [{"disease": "No diseases found"}]
+            result = session.run(
+                f"""MATCH (m:node)-[:substance]->(s:node)<-[:substance]-(analog:node) WHERE toLower(m.name) = toLower($selected_medicine)
+        RETURN analog.name as analog, s.name as substance""",
+                selected_medicine=selected_medicine,
+            )
+            analogs = [
+                {"analog": record["analog"], "substance": record["substance"]}
+                for record in result
+            ]
+            if analogs == []:
+                return [{"analog": "No analogs found"}]
             else:
-                return [{"analogs": analogs, "substance": substance}]
+                analogs = {"analogs": [record["analog"] for record in analogs], "substance": str(*set([record["substance"] for record in analogs]))}
 
+                return analogs
     def read_all_disease(self):
         with get_session() as session:
             result = session.run("MATCH (d:node) RETURN d.name AS disease")
