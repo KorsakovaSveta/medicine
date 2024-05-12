@@ -49,9 +49,9 @@ async def all_disease():
     return disease.model_dump_json()
 
 
-@app.get("/search")
+@app.get("/analogs")
 async def search(name: str):
-    return db_manager.read_by_name(name)
+    return db_manager.read_drug_by_substance(name)
 
 
 @app.post("/med_calc/bmi")
